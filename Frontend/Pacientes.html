@@ -101,6 +101,33 @@
         <button type="submit">Agregar</button>
     </form>
 
+    <h2>Formulario de Cuestionario</h2>
+    <form id="form-cuestionario">
+        <input type="text" name="rut_paciente" placeholder="RUT del Paciente" required>
+        <select name="respuesta1" required>
+            <option value="">Respuesta 1</option>
+            <option value="totalmente">Totalmente</option>
+            <option value="generalmente">Generalmente</option>
+            <option value="raramente">Raramente</option>
+            <option value="nunca">Nunca</option>
+        </select>
+        <select name="respuesta2" required>
+            <option value="">Respuesta 2</option>
+            <option value="totalmente">Totalmente</option>
+            <option value="generalmente">Generalmente</option>
+            <option value="raramente">Raramente</option>
+            <option value="nunca">Nunca</option>
+        </select>
+        <select name="respuesta3" required>
+            <option value="">Respuesta 3</option>
+            <option value="totalmente">Totalmente</option>
+            <option value="generalmente">Generalmente</option>
+            <option value="raramente">Raramente</option>
+            <option value="nunca">Nunca</option>
+        </select>
+        <button type="submit">Enviar</button>
+    </form>
+
     <script>
         let token = "";
 
@@ -182,6 +209,34 @@
                 alert("Paciente agregado correctamente");
                 formAgregar.reset();
                 cargarPacientes();
+            } else {
+                alert("Error: " + resultado.detail);
+            }
+        });
+
+        const formCuestionario = document.getElementById("form-cuestionario");
+        formCuestionario.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            if (!token) await obtenerToken();
+
+            const formData = new FormData(formCuestionario);
+            const datos = {};
+            formData.forEach((valor, clave) => datos[clave] = valor);
+
+            const res = await fetch("http://localhost:5500/api/v1/formularios", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(datos)
+            });
+
+            const resultado = await res.json();
+            if (res.ok) {
+                alert("Formulario enviado correctamente");
+                formCuestionario.reset();
             } else {
                 alert("Error: " + resultado.detail);
             }
