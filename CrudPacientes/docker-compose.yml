@@ -1,0 +1,31 @@
+services:
+  db:
+    image: mysql:8
+    container_name: mysql_db_crudpacientes
+    restart: always
+    environment:
+      MYSQL_DATABASE: CrudPacientes
+      MYSQL_ROOT_PASSWORD: "root_password"
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  fastapi:
+    build: .
+    container_name: microservicioPacientes
+    ports:
+      - "5500:5500"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: CrudPacientes
+      DB_USER: root
+      DB_PASSWORD: "root_password"

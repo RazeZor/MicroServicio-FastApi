@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD de Pacientes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        h1 {
+            color: #444;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #aaa;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #eee;
+        }
+
+        form {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            max-width: 800px;
+        }
+
+        input, select {
+            padding: 6px;
+            width: 95%;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #1abc9c;
+            border: none;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #16a085;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gestión de Pacientes</h1>
+
+    <button onclick="cargarPacientes()">Cargar Lista</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>RUT</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Edad</th>
+                <th>Género</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+                <th>Dirección</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-pacientes">
+            <!-- Pacientes cargados aquí -->
+        </tbody>
+    </table>
+
+    <h2>Agregar Paciente</h2>
+    <form id="form-agregar">
+        <input type="text" name="rut" placeholder="RUT" required>
+        <input type="text" name="nombre" placeholder="Nombre" required>
+        <input type="text" name="apellido" placeholder="Apellido" required>
+        <input type="number" name="edad" placeholder="Edad" required>
+        <select name="genero" required>
+            <option value="">Género</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Otro">Otro</option>
+        </select>
+        <input type="text" name="telefono" placeholder="Teléfono" required>
+        <input type="email" name="correo" placeholder="Correo" required>
+        <input type="text" name="direccion" placeholder="Dirección" required>
+        <button type="submit">Agregar</button>
+    </form>
+
+    <script>
+        let token = "";
+
+        async function obtenerToken() {
+            const res = await fetch("http://localhost:5500/api/v1/pacientes/token");
+            const data = await res.json();
+            token = data.access_token;
+        }
+
+        async function cargarPacientes() {
+            if (!token) await obtenerToken();
+
+            const res = await fetch("http://localhost:5500/api/v1/pacientes/ListaPacientes", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const pacientes = await res.json();
+            const tbody = document.getElementById("tabla-pacientes");
+            tbody.innerHTML = "";
+
+            pacientes.forEach(p => {
+                const fila = document.createElement("tr");
+                fila.innerHTML = `
+                    <td>${p.rut}</td>
+                    <td>${p.nombre}</td>
+                    <td>${p.apellido}</td>
+                    <td>${p.edad}</td>
+                    <td>${p.genero}</td>
+                    <td>${p.telefono}</td>
+                    <td>${p.correo}</td>
+                    <td>${p.direccion}</td>
+                    <td><button onclick="eliminarPaciente('${p.rut}')">Eliminar</button></td>
+                `;
+                tbody.appendChild(fila);
+            });
+        }
+
+        async function eliminarPaciente(rut) {
+            if (!token) await obtenerToken();
+
+            const confirmado = confirm("¿Seguro que deseas eliminar al paciente con RUT " + rut + "?");
+            if (!confirmado) return;
+
+            const res = await fetch(`http://localhost:5500/api/v1/pacientes/EliminarPaciente/${rut}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const resultado = await res.json();
+            alert(resultado.mensaje);
+            cargarPacientes();
+        }
+
+        const formAgregar = document.getElementById("form-agregar");
+        formAgregar.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            if (!token) await obtenerToken();
+
+            const formData = new FormData(formAgregar);
+            const datos = {};
+            formData.forEach((valor, clave) => datos[clave] = valor);
+
+            const res = await fetch("http://localhost:5500/api/v1/pacientes/AgregarPaciente", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(datos)
+            });
+
+            const resultado = await res.json();
+            if (res.ok) {
+                alert("Paciente agregado correctamente");
+                formAgregar.reset();
+                cargarPacientes();
+            } else {
+                alert("Error: " + resultado.detail);
+            }
+        });
+    </script>
+</body>
+</html>

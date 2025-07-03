@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pymysql
+pydantic
+python-dotenv
+pyjwt
+pyjwt[cryptography]
+cryptography>=3.4.7
