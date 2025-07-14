@@ -7,17 +7,12 @@ from RestController.Cuestionario import router as formularios_router
 from fastapi.responses import JSONResponse
 import uvicorn
 
-# Crear la aplicación FastAPI
-app = FastAPI(
-    title="API de Gestión de Pacientes",
-    description="API para la gestión de pacientes y sus formularios",
-    version="1.0.0"
-)
 
-# Configurar CORS
+app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, especificar los orígenes permitidos
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
